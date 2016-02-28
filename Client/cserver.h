@@ -6,8 +6,7 @@ class CServer : public QObject{// virtual
 	Q_OBJECT
 
 signals:
-	void read(QString, QString);
-	void updList(QStringList);
+	void read(QString);
 
 public:
 	virtual void connect(QString a) = 0;

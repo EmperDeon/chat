@@ -17,11 +17,16 @@ SOURCES +=\
     cserver.cpp \
     cutils.cpp \
     cwgt.cpp \
-    cwroom.cpp
+    cwroom.cpp \
+    cclient.cpp
 
 HEADERS  += \
     cdefines.h \
     cserver.h \
     cutils.h \
     cwgt.h \
-    cwroom.h
+    cwroom.h \
+    cclient.h
+
+DISTFILES += \
+    Commands

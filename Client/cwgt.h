@@ -1,14 +1,15 @@
 #ifndef WGT_H
 #define WGT_H
 #include <cdefines.h>
-#include <cserver.h>
+#include <cclient.h>
 #include <cwroom.h>
+
+class CClient;
 
 class Wgt : public QWidget{
 	Q_OBJECT
 
 	// Center
-	CWRoom* rooms;
 	QMap<QString, QString> *mCons, *mMess;
 	QString sCons, room = "*";
 
@@ -19,17 +20,16 @@ class Wgt : public QWidget{
 	// Tray
 
 	// Other
-	CServer* srv;
+	CClient* srv;
 
 public slots:
 	void send();
-	void sopt();
-	void conn();
-	void readResponse(QString r, QString s);
-	void updList(QStringList l);
-	void changeRoom();
+
 public:
 	Wgt(QWidget *parent = 0);
+	void append(QString r, QString s);
+	void updList(QStringList l);
+	void changeRoom(QString r);
 
 protected:
 	virtual void closeEvent(QCloseEvent* e);

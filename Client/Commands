@@ -1,0 +1,13 @@
+System
+-Client
+ ^Disconnect^ - disconnect
+
+-Server
+ ^GetNick^ - send nick
+
+Commands
+-Client
+ Nick^ + username - on connect
+ Mess^ + message
+
+-Server

@@ -1,10 +1,6 @@
 #include "cserver.h"
 
 // COwnServer
-void COwnServer::parseRead(QString s){
-	emit read("*", s);
-}
-
 void COwnServer::readyRead(){
 	QDataStream in(sock);
 	in.setVersion(QDataStream::Qt_5_4);
@@ -21,7 +17,7 @@ void COwnServer::readyRead(){
 	in >> curr;
 
 	if (curr != lastMsg) {
-		parseRead(curr);
+		emit read(curr);
 		blockSize = 0;
 	}
 }

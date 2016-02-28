@@ -16,11 +16,13 @@ int main(int argc, char *argv[]){
 	qInstallMessageHandler(messages);
 	QApplication a(argc, argv);
 
-	SLOGGER = new SLogWidget;
-	SCONFIG = new SConfig;
+	QString s = "^Mess^abcd^asd^";
+	qDebug() << s.split("^");
+//	SLOGGER = new SLogWidget;
+//	SCONFIG = new SConfig;
 
-	Wgt w;
-	w.show();
+//	Wgt w;
+//	w.show();
 
 	return a.exec();
 }

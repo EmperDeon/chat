@@ -1,17 +1,17 @@
 #include "cwroom.h"
 
 // CWRoom - CWidget Room
-void CWRoom::lClicked(QString n){
+void CWRooms::lClicked(QString n){
 	changeTo(n);
 }
 
-void CWRoom::addNew(QString n){
+void CWRooms::addNew(QString n){
 	if(n == "+")
 		n = QInputDialog::getText(this, "Enter channel name", "Name:");
 	if(n == "" || map->contains(n)){
 		logW("channel already added");
 	}else{
-		CWLbl* l = new CWLbl(n);
+		CWRoom* l = new CWRoom(n);
 		map->insert(n, l);
 		this->l->addWidget(l);
 		connect(l, SIGNAL(clicked(QString)), this, SLOT(lClicked(QString)));
@@ -19,14 +19,14 @@ void CWRoom::addNew(QString n){
 	}
 }
 
-void CWRoom::setBold(QString n, bool b){
+void CWRooms::setBold(QString n, bool b){
 	if(n != "+"){
 		map->value(n)->setText(b ? "<b>[" + n + "]</b>" : "[" + n + "]");
 	}
 }
 
-CWRoom::CWRoom(){
-	map = new QMap<QString, CWLbl*>;
+CWRooms::CWRooms(){
+	map = new QMap<QString, CWRoom*>;
 	l = new QHBoxLayout;
 	QHBoxLayout* l1 = new QHBoxLayout;
 	l->setAlignment(Qt::AlignLeft);
@@ -37,14 +37,14 @@ CWRoom::CWRoom(){
 	addNew("test2");
 	this->map->value(current)->setActive(true);
 
-	add = new CWLbl("+");
+	add = new CWRoom("+");
 	l1->addLayout(l);
 	l1->addWidget(add);
 	setLayout(l1);
 	connect(add, SIGNAL(clicked(QString)), this, SLOT(addNew(QString)));
 }
 
-void CWRoom::changeTo(QString n){
+void CWRooms::changeTo(QString n){
 	this->map->value(current)->setActive(false);
 	this->current = n;
 	this->map->value(current)->setActive(true);
@@ -55,14 +55,14 @@ void CWRoom::changeTo(QString n){
 
 
 // CWLbl - CWidget Label
-CWLbl::CWLbl(QString n): QLabel(), name(n){
+CWRoom::CWRoom(QString n): QLabel(), name(n){
 	this->setText(name == "+" ? name : "[ "+name+" ]");
 	this->setAutoFillBackground(true);
 }
-void CWLbl::setActive(bool f){
+void CWRoom::setActive(bool f){
 	QPalette p = palette();
 	p.setBrush(QPalette::Background, QBrush(f ? QColor(200, 200, 200) : QColor::fromRgbF(0.941176, 0.941176, 0.941176)));
 	this->setPalette(p);
 }
-void CWLbl::mouseReleaseEvent(QMouseEvent *e){ if(e->button() == Qt::LeftButton) emit clicked(name);}
+void CWRoom::mouseReleaseEvent(QMouseEvent *e){ if(e->button() == Qt::LeftButton) emit clicked(name);}
 // CWLbl - CWidget Label

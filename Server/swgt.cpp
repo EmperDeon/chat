@@ -1,52 +1,8 @@
 #include "swgt.h"
 
-#define SERVER_OWN_CONFIG QString("local")
-
-void Wgt::send(){	srv->send(mess->toPlainText());}
-
-void Wgt::sopt(){SCONFIG->show();}
-
-void Wgt::start(){
-	if(cHas("server-type")){
-		QString type = cGet("server-type");
-		if(type == SERVER_OWN_CONFIG){
-			srv = new SOwnConn;
-		}else if(type == "irc"){
-		//	srv = new SIrcConn;
-		}else{
-			logE("server-type must be " + SERVER_OWN_CONFIG + " or irc, not " + type);
-		}
-
-		if(cHas("server-ip")){
-			srv->start(cGet("server-ip"));
-
-			connect(srv, SIGNAL(read(QString)), this, SLOT(read(QString)));
-			//connect(srv, SIGNAL(updList(QStringList)), this, SLOT(updList(QStringList)));
-		}else{
-			logE("config don't have server-ip property");
-		}
-	}else{
-		SCONFIG->set("server-type", SERVER_OWN_CONFIG);
-	}
-}
+void Wgt::send(){	srv->executeComm(mess->toPlainText());}
 
 void Wgt::showL(){ SLOGGER->setVisible(!SLOGGER->isVisible());}
-
-void Wgt::read(QString s){
-	consHtml += s;
-	logI(s);
-	cons->setHtml(consHtml);
-	QTextCursor c = cons->textCursor();
-	c.movePosition(QTextCursor::End);
-	cons->setTextCursor(c);
-
-	srv->send("<div style=\"color:red;\">&lt; Nick &gt;</div>: " + s + "");
-}
-
-void Wgt::updList(QStringList l){
-	onln->clear();
-	onln->addItems(l);
-}
 
 Wgt::Wgt(QWidget *parent)	: QWidget(parent){
 	QHBoxLayout* l = new QHBoxLayout;
@@ -69,9 +25,9 @@ Wgt::Wgt(QWidget *parent)	: QWidget(parent){
 
 	// Layout
 	connect(bsend, SIGNAL(clicked()), this, SLOT(send()));
-	connect(bstrt, SIGNAL(clicked()), this, SLOT(start()));
+	connect(bstrt, SIGNAL(clicked()), srv , SLOT(startServer()));
 	connect(bLogs, SIGNAL(clicked()), this, SLOT(showL()));
-	connect(bopt,  SIGNAL(clicked()), this, SLOT(sopt()));
+	connect(bopt,  SIGNAL(clicked()), SCONFIG, SLOT(show()));
 
 	cl2->addWidget(mess);
 	cl2->addWidget(bsend);
@@ -90,15 +46,23 @@ Wgt::Wgt(QWidget *parent)	: QWidget(parent){
 	setWindowTitle("Chat server");
 }
 
+void Wgt::append(QString s){
+	consHtml += s;
+	cons->setHtml(consHtml);
+	QTextCursor c = cons->textCursor();
+	c.movePosition(QTextCursor::End);
+	cons->setTextCursor(c);
+}
+
+void Wgt::updateList(QStringList l){
+	onln->clear();
+	onln->addItems(l);
+}
+
 void Wgt::closeEvent(QCloseEvent *e){
 	Q_UNUSED(e);
 	SCONFIG->save();
 }
 
-void Wgt::keyPressEvent(QKeyEvent *e){
-	switch(e->key()){
-		case Qt::Key_F11: SLOGGER->show();
-	}
-}
 
 

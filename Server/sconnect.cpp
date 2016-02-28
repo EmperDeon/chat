@@ -1,18 +1,14 @@
 #include "sconnect.h"
 
-void SOwnConn::newConnection(){
+void SOwnConn::newConn(){
 	QTcpSocket* client = srv->nextPendingConnection();
-	connect(client, SIGNAL(readyRead()), this, SLOT(readyRead()));
-	clients->insert(QString::number(clientsCount), client);
-	logI("connected " + QString::number(clientsCount));
-	emit onNewConnection(QString::number(clientsCount));
-	clientsCount++;
+	tmp->append(client);
 
-	// TODO: request login/pass
+	send(client, "^GetNick^");
 }
 
 void SOwnConn::readyRead(){
-	for(QTcpSocket* client : clients->values())
+	for(QTcpSocket* client : *tmp)
 		if(client->isOpen()){
 			QDataStream in(client);
 			in.setVersion(QDataStream::Qt_5_4);
@@ -30,7 +26,16 @@ void SOwnConn::readyRead(){
 
 			if (curr != lastMsg) {
 				lastMsg = curr;
-				parseRead(lastMsg);
+
+				if(curr.startsWith("Nick^")){
+					QStringList l = curr.split("^");
+					SClient* r = new SOwnClient(l.value(1), client);
+					emit newConnection(r);
+
+				}else{
+
+				}
+
 				blockSize = 0;
 			}
 		}
@@ -40,21 +45,9 @@ SOwnConn::SOwnConn(){
 
 }
 
-void SOwnConn::parseRead(QString s){
-	if(state == NONE){
-
-	}else if(state == GET_NICK){
-
-	}else if(state == GET_MESS){	emit read(s);
-	}else{
-
-	}
-}
-
 void SOwnConn::start(QString ip){
 	Q_UNUSED(ip);
 
-	clients = new QMap<QString, QTcpSocket*>();
 	blockSize = 0;
 
 	srv = new QTcpServer(this);
@@ -64,24 +57,26 @@ void SOwnConn::start(QString ip){
 		return;
 	}
 
-	connect(srv, SIGNAL(newConnection()), this, SLOT(newConnection()));
+	connect(srv, SIGNAL(newConnection()), this, SLOT(newConn()));
 	logI("Server started");
 
 	QTimer *timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(readyRead()));
-	timer->start(10);
+	timer->start(50);
 }
 
-void SOwnConn::send(QString m){
-	for(QString s : clients->keys()){
-		send(s, m);
-	}
-}
+//void SOwnConn::send(QString m){
+//	for(QTcpSocket* s : clients->values()){
+//		send(s, m);
+//	}
+//}
 
-void SOwnConn::send(QString l, QString m){
-	QTcpSocket* socket = clients->value(l);
+//void SOwnConn::send(QString l, QString m){
+//	send(clients->value(l), m);
+//}
 
-	if (!socket) {	qDebug() << "no connect " << l; return;	}
+void SOwnConn::send(QTcpSocket *s, QString m){
+	if (!s) { return;	}
 
 	QByteArray block;
 	QDataStream out(&block, QIODevice::WriteOnly);
@@ -92,8 +87,48 @@ void SOwnConn::send(QString l, QString m){
 	out.device()->seek(0);
 	out << (quint16) (block.size() - sizeof(quint16));
 
-	socket->write(block);
-	socket->flush();
+	s->write(block);
+	s->flush();
 
 	logI("Send: " + m);
+}
+
+
+SOwnClient::SOwnClient(QString nick, QTcpSocket *s): sNick(nick), socket(s){}
+
+QString SOwnClient::tryRead(){
+	if(socket->isOpen()) return "";
+	QDataStream in(socket);
+	in.setVersion(QDataStream::Qt_5_4);
+
+	if(in.atEnd()) return "";
+
+	if (blockSize == 0) {
+		if (socket->bytesAvailable() < (int)sizeof(quint16))	return "";
+		in >> blockSize;
+	}
+
+	QString curr;
+	in >> curr;
+
+	if (curr != lastMsg) {
+		lastMsg = curr;
+		blockSize = 0;
+		return curr;
+	}
+	return "";
+}
+
+void SOwnClient::send(QString s){
+	QByteArray block;
+	QDataStream out(&block, QIODevice::WriteOnly);
+	out.setVersion(QDataStream::Qt_5_4);
+
+	out << (quint16) 0;
+	out << s;
+	out.device()->seek(0);
+	out << (quint16) (block.size() - sizeof(quint16));
+
+	socket->write(block);
+	socket->flush();
 }

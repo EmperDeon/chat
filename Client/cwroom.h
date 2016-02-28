@@ -2,7 +2,7 @@
 #define CWROOM_H
 #include <cdefines.h>
 
-class CWLbl : public QLabel{
+class CWRoom : public QLabel{
 	Q_OBJECT
 
 	QString name;
@@ -11,20 +11,20 @@ signals:
 	void clicked(QString);
 
 public:
-	CWLbl(QString n);
+	CWRoom(QString n);
 	void setActive(bool f);
 
 protected:
 	virtual void mouseReleaseEvent(QMouseEvent* e);
 };
 
-class CWRoom : public QWidget{
+class CWRooms : public QWidget{
 	Q_OBJECT
 
 	QHBoxLayout* l;
-	QMap<QString, CWLbl*>* map;
+	QMap<QString, CWRoom*>* map;
 	QString current = "*";
-	CWLbl* add;
+	CWRoom* add;
 
 signals:
 	void roomChanged();
@@ -35,7 +35,7 @@ public slots:
 	QString getCurrent(){ return current;}
 	void setBold(QString n, bool b);
 public:
-	CWRoom();
+	CWRooms();
 
 protected:
 	void changeTo(QString n);
