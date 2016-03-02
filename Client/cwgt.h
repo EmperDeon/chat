@@ -2,7 +2,6 @@
 #define WGT_H
 #include <cdefines.h>
 #include <cclient.h>
-#include <cwroom.h>
 
 class CClient;
 
@@ -10,11 +9,11 @@ class Wgt : public QWidget{
 	Q_OBJECT
 
 	// Center
-	QMap<QString, QString> *mCons, *mMess;
-	QString sCons, room = "*";
+	QString sCons;
 
 	QTextEdit* cons;
-	QTextEdit* mess;
+	QLineEdit* mess;
+
 	// Right menu
 	QListWidget* onln;
 	// Tray
@@ -27,9 +26,8 @@ public slots:
 
 public:
 	Wgt(QWidget *parent = 0);
-	void append(QString r, QString s);
+	void append(QString s);
 	void updList(QStringList l);
-	void changeRoom(QString r);
 
 protected:
 	virtual void closeEvent(QCloseEvent* e);

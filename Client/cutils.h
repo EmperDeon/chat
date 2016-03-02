@@ -46,16 +46,17 @@ class CConfig : public QWidget{
 	QJsonObject* des;
 	QMap<QString, QLineEdit*>* edits;
 
-	QLineEdit *ek, *ev, *ed;
 public slots:
 	void wclose();
-	void add();
+
 public:
 	CConfig();
+	void init();
+
 	QJsonValue get(QString k);
 	bool has(QString k);
-	void set(QString k, QString v);
 	void save();
+	void closeEvent(QCloseEvent* e);
 };
 // Configs
 #endif // UTILS_H

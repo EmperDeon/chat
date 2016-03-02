@@ -2,12 +2,10 @@
 #define CCLIENT_H
 #include <cdefines.h>
 #include <cserver.h>
-#include <cwroom.h>
 #include <cwgt.h>
 
 class CServer;
 class Wgt;
-class CWRooms;
 
 class CClient : public QObject{
 	Q_OBJECT
@@ -15,8 +13,12 @@ class CClient : public QObject{
 	Wgt* wgt;
 	CServer* srv;
 
+	// History
+	QJsonObject *history;
+	bool connected = false;
+
 protected slots:
-	void read(QString s);
+	void read(QString r);
 
 public slots:
 	void connectToServer();
@@ -24,11 +26,11 @@ public slots:
 protected:
 
 public:
-	CWRooms* rooms;
-
 	CClient(Wgt* w);
+
 	void sendMessage(QString s);
 	void send(QString s);
+	void close();
 };
 
 #endif // CCLIENT_H

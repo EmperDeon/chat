@@ -130,25 +130,16 @@ void CConfig::wclose(){
 	hide();
 }
 
-void CConfig::add(){
-	obj->insert(ek->text(), ev->text());
-	des->insert(ek->text(), ed->text());
-
-	ek->clear();
-	ev->clear();
-	ed->clear();
-}
-
 CConfig::CConfig(){
 	QFile f("config.json");
-	if(f.exists()){
-		f.open(QFile::ReadOnly);
-		obj = new QJsonObject(QJsonDocument::fromJson(f.readAll()).object());
-		f.close();
-	}else{
-		obj = new QJsonObject;
-		logE("No config file");
+	if(!f.exists()){
+		init();
 	}
+
+	f.open(QFile::ReadOnly);
+	obj = new QJsonObject(QJsonDocument::fromJson(f.readAll()).object());
+	f.close();
+
 	f.setFileName("cdescr.json");
 	if(f.exists()){
 		f.open(QFile::ReadOnly);
@@ -170,28 +161,57 @@ CConfig::CConfig(){
 		edits->insert(s, le);
 	}
 
-	ek = new QLineEdit("Key");
-	ev = new QLineEdit("Value");
-	ed = new QLineEdit("Description");
-	QHBoxLayout* w = new QHBoxLayout;
-	QPushButton* bSave = new QPushButton("Save and Exit"), *bAdd = new QPushButton("Add");
-	w->addWidget(ek);
-	w->addWidget(ev);
-	w->addWidget(ed);
-	l->addLayout(w);
+	QPushButton* bSave = new QPushButton("Save and Exit");
 	connect(bSave, SIGNAL(clicked()), this, SLOT(wclose()));
-	connect(bAdd , SIGNAL(clicked()), this, SLOT(add()));
 	l->addWidget(bSave);
-	l->addWidget(bAdd);
 	setLayout(l);
 	setWindowTitle("Options editor");
 }
 
-QJsonValue CConfig::get(QString k){	return obj->value(k);}
+void CConfig::init(){
+	QJsonObject o;
+	QString ds, df, k;
+	o.insert("color", QColorDialog::getColor(Qt::black, this, "Выбери цвет для ника").name());
+
+	k = "login";
+	ds = "Логин (только латиница): ";
+	o.insert(k, QInputDialog::getText(this, "Первый запуск", ds, QLineEdit::Normal, df));
+
+	k = "pass";
+	ds = "Пароль: ";
+	o.insert(k, QInputDialog::getText(this, "Первый запуск", ds, QLineEdit::Normal, df));
+
+	k = "realname";
+	ds = "Имя (на русском): ";
+	o.insert(k, QInputDialog::getText(this, "Первый запуск", ds, QLineEdit::Normal, df));
+
+	k = "server-ip";
+	ds = "Адрес сервера: ";
+	df = "192.168.0.1";
+	o.insert(k, QInputDialog::getText(this, "Первый запуск", ds, QLineEdit::Normal, df));
+
+	k = "server-type";
+	ds = "Тип сервера: ";
+	df = "local";
+	o.insert(k, QInputDialog::getText(this, "Первый запуск", ds, QLineEdit::Normal, df));
+
+	QFile f("config.json");
+	f.open(QFile::WriteOnly);
+	f.write(QJsonDocument(o).toJson());
+	f.flush();
+	f.close();
+}
+
+QJsonValue CConfig::get(QString k){
+	QFile f("config.json");
+	f.open(QFile::ReadOnly);
+	obj = new QJsonObject(QJsonDocument::fromJson(f.readAll()).object());
+	f.close();
+
+	return obj->value(k);
+}
 
 bool CConfig::has(QString k){ return obj->contains(k);}
-
-void CConfig::set(QString k, QString v){ obj->insert(k, v); }
 
 void CConfig::save(){
 	QFile f("config.json");
@@ -205,4 +225,7 @@ void CConfig::save(){
 	f.flush();
 	f.close();
 }
+
+void CConfig::closeEvent(QCloseEvent *e){ wclose(); e->accept();}
+
 CConfig* CCONFIG;

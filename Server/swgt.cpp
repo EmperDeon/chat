@@ -16,6 +16,7 @@ Wgt::Wgt(QWidget *parent)	: QWidget(parent){
 	QPushButton* bsend = new QPushButton("Send");
 	mess->setMaximumHeight(80);
 	bsend->setMinimumHeight(80);
+ srv = new SServer(this);
 
 	// Right menu
 	QVBoxLayout* rl1 = new QVBoxLayout;
@@ -61,6 +62,7 @@ void Wgt::updateList(QStringList l){
 
 void Wgt::closeEvent(QCloseEvent *e){
 	Q_UNUSED(e);
+	srv->close();
 	SCONFIG->save();
 }
 

@@ -11,6 +11,7 @@ signals:
 public:
 	virtual void connect(QString a) = 0;
 	virtual void send(QString s) = 0;
+	virtual void disconnectFromServer() = 0;
 // virtual
 };
 
@@ -23,7 +24,6 @@ class COwnServer : public CServer{
 	QString lastMsg;
 	quint16 blockSize = 0;
 
-	void parseRead(QString s);
 private slots:
 	void readyRead();
 	void connected();
@@ -32,6 +32,7 @@ public:
 	COwnServer();
 	virtual void connect(QString a) override;
 	virtual void send(QString s) override;
+	virtual void disconnectFromServer() override;
 };
 
 #endif // SERVER_H

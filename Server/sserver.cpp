@@ -3,28 +3,63 @@
 
 #define SERVER_OWN_CONFIG QString("local")
 
-SServer::SServer(Wgt *w): wgt(w){
-	clients = new QList<SClient*>;
-
-
-}
-
+// Slots
 void SServer::newConnection(SClient *c){
-	clients->append(c);
-	updList();
+	QString n = c->getNick();
+	if(!users->contains(n)) {
+		users->insert(n, c->getPass());
+	}else if(users->value(n) == c->getPass()){
+		cl->add(c);
+		cl->sendMotd(n);
+		wgt->append("<div style=\"color:#009900\">" + c->getNick() + " connected</div>");
+	}else{
+		c->send("^WrongPass^");
+		c->disconnect();
+	}
 }
 
 void SServer::delConnection(SClient *c){
-	clients->removeAll(c);
+	cl->del(c->getNick());
+	c->disconnect();
+	cl->sendConn(c->getNick(), "Disconnected");
+	wgt->append("<div style=\"color:#ff3300\">" + c->getNick() + " disconnected</div>");
 	updList();
 }
 
 void SServer::tryRead(){
-	for(SClient* c : *clients){
-		QString r = c->tryRead();
+	for(QString c : cl->getNicks()){
+		QString r = cl->tryRead(c);
 		if (r != "") {
+			logD(r);
+			QStringList s = r.split('^');
+			appendHistory(QString::number(QDateTime::currentMSecsSinceEpoch()), r);
+
 			if(r.startsWith("Mess^")){
-				wgt->append(r.remove(0, 5));
+				appendToWidget(c, s);
+				cl->sendAll(
+								"Mess^" +
+								QString::number(QDateTime::currentMSecsSinceEpoch()) + "^" +
+								cl->getName(c) + "^" +
+								cl->getColor(c) + "^" +
+								s[1]
+						);
+
+			}else if(r.startsWith("GetHistory^")){
+				sendHistory(c, s[1]);
+
+			}else if(r.startsWith("SetColor^")){
+				cl->setColor(c, s[1]);
+
+			}else if(r.startsWith("SetName^")){
+				cl->add(c, s[1]);
+				cl->sendConn(c, "Connected");
+				updList();
+
+			}else if(r.startsWith("GetList^")){
+				cl->send(c, "UpdUsers^" + cl->getNicks().join('&'));
+
+			}else if(r.startsWith("^Disconnect^")){
+				delConnection(cl->get(c));
 
 			}else{
 				logI(r);
@@ -32,12 +67,10 @@ void SServer::tryRead(){
 		}
 	}
 }
+// Slots
 
-void SServer::read(QString s){
-	wgt->append(s);
 
-}
-
+// Functions
 void SServer::startServer(){
 	if(cHas("server-type")){
 		QString type = cGet("server-type");
@@ -52,7 +85,6 @@ void SServer::startServer(){
 		if(cHas("server-ip")){
 			srv->start(cGet("server-ip"));
 
-			connect(srv, SIGNAL(read(QString)), this, SLOT(read(QString)));
 			connect(srv, SIGNAL(newConnection(SClient*)), this, SLOT(newConnection(SClient*)));
 			connect(srv, SIGNAL(delConnection(SClient*)), this, SLOT(delConnection(SClient*)));
 
@@ -67,14 +99,108 @@ void SServer::startServer(){
 	}
 }
 
-void SServer::executeComm(QString c){
+SServer::SServer(Wgt *w): wgt(w){
+	cl = new SClients;
 
+ loadJsons();
+}
+
+void SServer::executeComm(QString c){
+	Q_UNUSED(c);
 	//srv->send(c);
 }
 
-void SServer::updList(){
-	QStringList r;
-	for(SClient* s : *clients)
-		r << s->getNick();
-	wgt->updateList(r);
+void SServer::close() {
+	saveJsons();
 }
+
+void SServer::updList(){
+	wgt->updateList(cl->getNicks());
+	cl->sendAll("UpdUsers^" + cl->getNames().join('&'));
+}
+
+void SServer::loadJsons() {
+	QFile f("users.json");
+	if(f.exists()) {
+		f.open(QFile::ReadOnly);
+		users = new QJsonObject(QJsonDocument::fromJson(f.readAll()).object());
+		f.close();
+	}else{
+		users = new QJsonObject;
+	}
+
+	f.setFileName("unames.json");
+	if(f.exists()) {
+		f.open(QFile::ReadOnly);
+		names = new QJsonObject(QJsonDocument::fromJson(f.readAll()).object());
+		f.close();
+	}else{
+		names = new QJsonObject;
+	}
+
+	f.setFileName("history.json");
+	if(f.exists()) {
+		f.open(QFile::ReadOnly);
+		history = new QJsonObject(QJsonDocument::fromJson(f.readAll()).object());
+		f.close();
+	}else{
+		history = new QJsonObject;
+	}
+}
+
+void SServer::saveJsons() {
+	QFile f("users.json");
+	f.open(QFile::WriteOnly);
+	f.write(QJsonDocument(*users).toJson());
+	f.flush();
+	f.close();
+
+	f.setFileName("history.json");
+	f.open(QFile::WriteOnly);
+	f.write(QJsonDocument(*history).toJson());
+	f.flush();
+	f.close();
+}
+// Functions
+
+
+// Widget
+void SServer::appendToWidget(QString c, QStringList s) {
+	wgt->append("<div style=\"color:" + cl->getColor(c) + "\">&lt;" + c + "&gt;:</div>" + s[1]);
+}
+// Widget
+
+
+// History
+void SServer::sendHistory(QString c, QString d, QString filt) {
+	QString v, r, date;
+
+	for(int i = 0 ; i < 13-d.length() ; i++) date += '0';
+	date += d;
+
+	for(QString k : history->keys())
+		if(k < date){
+			v = history->value(k).toString();
+			if(v.startsWith(filt) && r.length() + v.length() > 400){
+				cl->send(c, "History^" + r);
+				r = "";
+			}
+			r += v + "^";
+		}
+
+	if(!v.isEmpty())
+		cl->send(c, r);
+}
+
+void SServer::appendHistory(QString k, QString v) {
+	history->insert(k, v.replace('^', '&'));
+}
+// History
+
+
+// Messages
+// Messages
+
+
+// Rooms
+// Rooms

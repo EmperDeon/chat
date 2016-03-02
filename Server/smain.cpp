@@ -13,16 +13,15 @@ void messages(QtMsgType type, const QMessageLogContext& cont, const QString& msg
 }
 
 int main(int argc, char *argv[]){
-	qInstallMessageHandler(messages);
 	QApplication a(argc, argv);
+	SLOGGER = new SLogWidget;
+	qInstallMessageHandler(messages);
 
-	QString s = "^Mess^abcd^asd^";
-	qDebug() << s.split("^");
-//	SLOGGER = new SLogWidget;
-//	SCONFIG = new SConfig;
+	SCONFIG = new SConfig;
 
-//	Wgt w;
-//	w.show();
+
+	Wgt w;
+	w.show();
 
 	return a.exec();
 }

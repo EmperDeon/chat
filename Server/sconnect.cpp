@@ -29,7 +29,8 @@ void SOwnConn::readyRead(){
 
 				if(curr.startsWith("Nick^")){
 					QStringList l = curr.split("^");
-					SClient* r = new SOwnClient(l.value(1), client);
+					SClient* r = new SOwnClient(l.value(1), l.value(2), client);
+					tmp->removeAll(client);
 					emit newConnection(r);
 
 				}else{
@@ -49,7 +50,7 @@ void SOwnConn::start(QString ip){
 	Q_UNUSED(ip);
 
 	blockSize = 0;
-
+ tmp = new QList<QTcpSocket*>;
 	srv = new QTcpServer(this);
 
 	if (!srv->listen(QHostAddress::Any, 5768)) {
@@ -65,23 +66,13 @@ void SOwnConn::start(QString ip){
 	timer->start(50);
 }
 
-//void SOwnConn::send(QString m){
-//	for(QTcpSocket* s : clients->values()){
-//		send(s, m);
-//	}
-//}
-
-//void SOwnConn::send(QString l, QString m){
-//	send(clients->value(l), m);
-//}
-
 void SOwnConn::send(QTcpSocket *s, QString m){
 	if (!s) { return;	}
 
 	QByteArray block;
 	QDataStream out(&block, QIODevice::WriteOnly);
 	out.setVersion(QDataStream::Qt_5_4);
-	logI(m);
+
 	out << (quint16) 0;
 	out << m;
 	out.device()->seek(0);
@@ -89,15 +80,13 @@ void SOwnConn::send(QTcpSocket *s, QString m){
 
 	s->write(block);
 	s->flush();
-
-	logI("Send: " + m);
 }
 
 
-SOwnClient::SOwnClient(QString nick, QTcpSocket *s): sNick(nick), socket(s){}
+SOwnClient::SOwnClient(QString nick, QString pass, QTcpSocket *s): sNick(nick), sPass(pass), socket(s){}
 
 QString SOwnClient::tryRead(){
-	if(socket->isOpen()) return "";
+	if(!socket->isOpen()) return "";
 	QDataStream in(socket);
 	in.setVersion(QDataStream::Qt_5_4);
 
@@ -111,12 +100,9 @@ QString SOwnClient::tryRead(){
 	QString curr;
 	in >> curr;
 
-	if (curr != lastMsg) {
-		lastMsg = curr;
-		blockSize = 0;
-		return curr;
-	}
-	return "";
+	lastMsg = curr;
+	blockSize = 0;
+	return curr;
 }
 
 void SOwnClient::send(QString s){

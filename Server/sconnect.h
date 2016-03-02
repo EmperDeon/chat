@@ -11,37 +11,44 @@ public:
 
 	virtual QString  getColor() = 0;
 	virtual QString  getNick () = 0;
+	virtual QString  getPass () = 0;
 	virtual SC_STATE getState() = 0;
 
 	virtual void setColor(QString s ) = 0;
 	virtual void setState(SC_STATE s) = 0;
 
-
+ virtual void disconnect() = 0;
 };
 
 class SIrcClient : public SClient{};
 
 class SOwnClient : public SClient{
-	QString sColor, sNick;
+	QString sColor, sNick, sPass;
 	SC_STATE sState;
 	QTcpSocket* socket;
 
 	QString lastMsg;
 	quint16 blockSize = 0;
 public:
-	SOwnClient(QString nick, QTcpSocket* s);
+	SOwnClient(QString nick, QString pass, QTcpSocket* s);
 
 	virtual QString tryRead();
 	virtual void send(QString s);
 
 	virtual QString  getColor(){ return sColor;}
 	virtual QString  getNick (){ return sNick ;}
+	virtual QString  getPass (){ return sPass ;}
 	virtual SC_STATE getState(){ return sState;}
 
 	virtual void setColor(QString s ){ sColor = s;}
 	virtual void setState(SC_STATE s){ sState = s;}
-};
 
+	virtual void disconnect(){ socket->disconnectFromHost();}
+};
+// SClient
+
+
+// SConnect
 class SConnect : public QObject{
 	Q_OBJECT
 

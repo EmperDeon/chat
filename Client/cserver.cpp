@@ -34,7 +34,7 @@ COwnServer::COwnServer(){
 
 void COwnServer::connect(QString a){
 	sock->connectToHost(a, 5768);
-	logI("Connecting to " + a);
+	logD("Connecting to " + a);
 }
 
 void COwnServer::send(QString s){
@@ -52,6 +52,10 @@ void COwnServer::send(QString s){
 	sock->write(block);
 	sock->flush();
 
-	logI("Send: "+s);
+	logD("Send: "+s);
+}
+
+void COwnServer::disconnectFromServer(){
+	sock->disconnectFromHost();
 }
 // COwnServer

@@ -18,11 +18,13 @@ SOURCES +=\
     sutils.cpp \
     swgt.cpp \
     smain.cpp \
-    sserver.cpp
+    sserver.cpp \
+    sclients.cpp
 
 HEADERS  += \
 		sconnect.h \
     sdefines.h \
     sutils.h \
     swgt.h \
-    sserver.h
+    sserver.h \
+    sclients.h

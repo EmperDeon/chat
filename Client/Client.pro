@@ -17,7 +17,6 @@ SOURCES +=\
     cserver.cpp \
     cutils.cpp \
     cwgt.cpp \
-    cwroom.cpp \
     cclient.cpp
 
 HEADERS  += \
@@ -25,7 +24,6 @@ HEADERS  += \
     cserver.h \
     cutils.h \
     cwgt.h \
-    cwroom.h \
     cclient.h
 
 DISTFILES += \
