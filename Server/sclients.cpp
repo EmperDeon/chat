@@ -1,5 +1,6 @@
 #include "sclients.h"
 
+#define TIME QString::number(QDateTime::currentMSecsSinceEpoch())
 
 SClients::SClients(){
 	clients = new QMap<QString, SClient*>;
@@ -42,7 +43,7 @@ void SClients::sendMotd(QString n){
 }
 
 void SClients::sendConn(QString n, QString m){
-	sendAll(m + "^" + findN(n));
+	sendAll(m + "^" + TIME + "^" + findN(n));
 }
 // Send
 

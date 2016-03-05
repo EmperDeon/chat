@@ -15,6 +15,8 @@ class CClient : public QObject{
 
 	// History
 	QJsonObject *history;
+	QDate lastdate;
+
 	bool connected = false;
 
 protected slots:
@@ -27,6 +29,9 @@ protected:
 
 public:
 	CClient(Wgt* w);
+
+	void addHistory(QString m);
+	QString time(QString s);
 
 	void sendMessage(QString s);
 	void send(QString s);
