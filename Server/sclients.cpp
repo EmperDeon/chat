@@ -39,11 +39,11 @@ void SClients::send(QJsonArray a, QString m){
 void SClients::sendAll(QString m){ send(getNicks(), m);}
 
 void SClients::sendMotd(QString n){
-	send(n, "Motd^Hi there !");
+	send(n, "Motd&Hi there !");
 }
 
 void SClients::sendConn(QString n, QString m){
-	sendAll(m + "^" + TIME + "^" + findN(n));
+	sendAll(m + "&" + TIME + "&" + findN(n));
 }
 // Send
 

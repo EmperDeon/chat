@@ -1,7 +1,7 @@
 #ifndef WGT_H
 #define WGT_H
 #include <cdefines.h>
-#include <cclient.h>
+#include "cclient.h"
 
 class CClient;
 

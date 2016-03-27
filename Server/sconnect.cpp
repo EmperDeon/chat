@@ -4,7 +4,7 @@ void SOwnConn::newConn(){
 	QTcpSocket* client = srv->nextPendingConnection();
 	tmp->append(client);
 
-	send(client, "^GetNick^");
+	send(client, "&GetNick&");
 }
 
 void SOwnConn::readyRead(){
@@ -27,8 +27,8 @@ void SOwnConn::readyRead(){
 			if (curr != lastMsg) {
 				lastMsg = curr;
 
-				if(curr.startsWith("Nick^")){
-					QStringList l = curr.split("^");
+				if(curr.startsWith("Nick&")){
+					QStringList l = curr.split("&");
 					SClient* r = new SOwnClient(l.value(1), l.value(2), client);
 					tmp->removeAll(client);
 					emit newConnection(r);
@@ -82,7 +82,6 @@ void SOwnConn::send(QTcpSocket *s, QString m){
 	s->flush();
 }
 
-
 SOwnClient::SOwnClient(QString nick, QString pass, QTcpSocket *s): sNick(nick), sPass(pass), socket(s){}
 
 QString SOwnClient::tryRead(){
@@ -117,4 +116,51 @@ void SOwnClient::send(QString s){
 
 	socket->write(block);
 	socket->flush();
+}
+// SOwnConn
+
+
+// SIRCConn
+void SIRCConn::newConn() {
+	sendP("NICK " + cGet("login"));
+	sendP("USER " + cGet("login") + " 0 * :" + cGet("login"));
+}
+
+void SIRCConn::readyRead() {
+	QByteArray line;
+	do {
+		line = sock->readLine();
+		if (line.size()) {
+			parseRead(QString::fromUtf8(line.data()));
+		}else
+			break;
+	}
+	while ( true );
+}
+
+SIRCConn::SIRCConn() {
+	sock = new QTcpSocket;
+	QObject::connect(sock, SIGNAL(connected()), this, SLOT(newConn()));
+	QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readyRead()));
+}
+
+void SIRCConn::start(QString ip) {
+
+}
+
+void SIRCConn::parseRead(QString r) {
+	qDebug() << r.remove("\n");
+	QStringList s = r.split(":");
+	if(r.startsWith("PING")){
+		sendP("PONG :" + s[1]);
+	}else if(r.indexOf("PRIVMSG") != -1){
+		qDebug() << r.split(" :");
+		emit read(r.split(" :")[1]);
+	}else if(r.indexOf(":+i") != -1){
+		emit read("&GetNick&");
+	}
+}
+
+void SIRCConn::sendP(QString r) {
+	sock->write((r + "\r\n").toUtf8());
 }

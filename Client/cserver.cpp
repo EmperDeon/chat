@@ -59,3 +59,58 @@ void COwnServer::disconnectFromServer(){
 	sock->disconnectFromHost();
 }
 // COwnServer
+
+
+// CIRCServer
+void CIRCServer::readyRead() {
+	QByteArray line;
+	do {
+		line = sock->readLine();
+		if (line.size()) {
+			parseRead(QString::fromUtf8(line.data()));
+		}else
+			break;
+	}
+	while ( true );
+}
+
+void CIRCServer::parseRead(QString r) {
+	qDebug() << r.remove("\n");
+	QStringList s = r.split(":");
+	if(r.startsWith("PING")){
+		sendP("PONG :" + s[1]);
+	}else if(r.indexOf("PRIVMSG") != -1){
+		qDebug() << r.split(" :");
+		emit read(r.split(" :")[1]);
+	}else if(r.indexOf(":+i") != -1){
+		emit read("&GetNick&");
+	}
+}
+
+void CIRCServer::connected() {
+	sendP("NICK " + cGet("login"));
+ sendP("USER " + cGet("login") + " 0 * :" + cGet("login"));
+}
+
+CIRCServer::CIRCServer(Wgt* w) : wgt(w){
+ sock = new QTcpSocket;
+	QObject::connect(sock, SIGNAL(connected()), this, SLOT(connected()));
+	QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readyRead()));
+}
+
+void CIRCServer::connect(QString a) {
+ sock->connectToHost(a, 6666);
+}
+
+void CIRCServer::send(QString s) {
+ sendP("PRIVMSG " + cGet("irc-name") + s);
+}
+
+void CIRCServer::disconnectFromServer() {
+
+}
+
+void CIRCServer::sendP(QString s) {
+	sock->write((s + "\r\n").toUtf8());
+}
+// CIRCServer

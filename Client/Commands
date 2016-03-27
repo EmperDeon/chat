@@ -1,13 +1,13 @@
 System
 -Client
- ^Disconnect^ - disconnect
+ &Disconnect& - disconnect
 
 -Server
- ^GetNick^ - send nick
+ &GetNick& - send nick
 
 Commands
 -Client
- Nick^ + username - on connect
- Mess^ + message
+ Nick& + username - on connect
+ Mess& + message
 
 -Server

@@ -13,7 +13,7 @@ void SServer::newConnection(SClient *c){
 		cl->sendMotd(n);
 		wgt->append("<div style=\"color:#009900\">" + c->getNick() + " connected</div>");
 	}else{
-		c->send("^WrongPass^");
+		c->send("&WrongPass&");
 		c->disconnect();
 	}
 }
@@ -31,33 +31,33 @@ void SServer::tryRead(){
 		QString r = cl->tryRead(c);
 		if (r != "") {
 			logD(r);
-			QStringList s = r.split('^');
+			QStringList s = r.split('&');
 
-			if(r.startsWith("Mess^")){
+			if(r.startsWith("Mess&")){
 				appendToWidget(c, s);
-				QString m =	"Mess^" + TIME + "^" + cl->getName(c) + "^" + cl->getColor(c) + "^" + s[1];
+				QString m =	"Mess&" + TIME + "&" + cl->getName(c) + "&" + cl->getColor(c) + "&" + s[1];
 
 				cl->sendAll(m);
 				appendHistory(TIME, m);
 
-			}else if(r.startsWith("GetHistory^")){
+			}else if(r.startsWith("GetHistory&")){
 				sendHistory(c, s[1]);
 
-			}else if(r.startsWith("SetColor^")){
+			}else if(r.startsWith("SetColor&")){
 				cl->setColor(c, s[1]);
 
-			}else if(r.startsWith("SetName^")){
+			}else if(r.startsWith("SetName&")){
 				cl->add(c, s[1]);
 				cl->sendConn(c, "Connected");
-				appendHistory(TIME, "Connected^" + TIME + "^" + s[1]);
+				appendHistory(TIME, "Connected&" + TIME + "&" + s[1]);
 
 				updList();
 
-			}else if(r.startsWith("GetList^")){
-				cl->send(c, "UpdUsers^" + cl->getNicks().join('&'));
+			}else if(r.startsWith("GetList&")){
+				cl->send(c, "UpdUsers&" + cl->getNicks().join('&'));
 
-			}else if(r.startsWith("^Disconnect^")){
-				appendHistory(TIME, "Disconnected^" + TIME + "^" + cl->getName(c));
+			}else if(r.startsWith("&Disconnect&")){
+				appendHistory(TIME, "Disconnected&" + TIME + "&" + cl->getName(c));
 				delConnection(cl->get(c));
 
 			}else{
@@ -115,7 +115,7 @@ void SServer::close() {
 
 void SServer::updList(){
 	wgt->updateList(cl->getNicks());
-	cl->sendAll("UpdUsers^" + cl->getNames().join('&'));
+	cl->sendAll("UpdUsers&" + cl->getNames().join('&'));
 }
 
 void SServer::loadJsons() {
@@ -172,10 +172,10 @@ void SServer::sendHistory(QString c, QString d, QString filt) {
 
 			v = history->value(k).toString();
 			if(v.startsWith(filt) && r.length() + v.length() > 400){
-				cl->send(c, "History^" + r);
+				cl->send(c, "History&" + r);
 				r = "";
 			}
-			r += v + "^";
+			r += v + "&";
 		}
 }
 	if(!v.isEmpty())
@@ -184,6 +184,6 @@ void SServer::sendHistory(QString c, QString d, QString filt) {
 }
 
 void SServer::appendHistory(QString k, QString v) {
-	history->insert(k, v.replace('^', '&'));
+	history->insert(k, v.replace('&', '&'));
 }
 // History

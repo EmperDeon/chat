@@ -1,6 +1,6 @@
 #include "cwgt.h"
 
-void Wgt::send(){ srv->sendMessage(mess->text().replace('^', "&")); mess->clear();}
+void Wgt::send(){ srv->send(mess->text().replace('&', "&")); mess->clear();}
 
 Wgt::Wgt(QWidget *parent)	: QWidget(parent){
 	QHBoxLayout* l = new QHBoxLayout;

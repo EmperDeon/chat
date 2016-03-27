@@ -1,5 +1,5 @@
-set(C_S cclient.cpp cmain.cpp cserver.cpp cutils.cpp cwgt.cpp cwroom.cpp)
-set(C_H cclient.h cdefines.h cserver.h cutils.h cwgt.h cwroom.h)
+set(C_S cclient.cpp cmain.cpp cserver.cpp cutils.cpp cwgt.cpp)
+set(C_H cclient.h cdefines.h cserver.h cutils.h cwgt.h)
 
 qt5_wrap_cpp(GENERATED_SOURCES ${C_H})
 

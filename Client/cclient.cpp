@@ -4,54 +4,57 @@
 
 
 void CClient::read(QString r){
-	QStringList s = r.split('^');
-	if(r.startsWith("^GetNick^")){
-		send("Nick^" + cGet("login") + "^" + cGet("pass"));
+	QStringList s = r.split('&');
+	if(r.startsWith("&GetNick&")){
+		connected = true;
+		send("Nick&" + cGet("login") + "&" + cGet("pass"));
 
-	}else if(r.startsWith("^WrongPass^")){
+	}else if(r.startsWith("&WrongPass&")){
 		wgt->append("<br/><div style=\"color:red\"> Wrong password </div><br/>");
 
-	}else if(r.startsWith("Motd^")){
+	}else if(r.startsWith("Motd&")){
 		wgt->append("MOTD: " + s[1] + "<br />");
-		send("SetName^"  + cGet("realname"));
-		send("SetColor^" + cGet("color"));
-		send("GetHistory^" + history->value("lastMessage").toString("1"));
+		send("SetName&"  + cGet("realname"));
+		send("SetColor&" + cGet("color"));
+		send("GetHistory&" + history->value("lastMessage").toString("1"));
 
-	}else if(r.startsWith("History^")){
+	}else if(r.startsWith("History&")){
 		for(QString i : s){
 			addHistory(i);
 		}
 
-	}else if(r.startsWith("Mess^")){
+	}else if(r.startsWith("Mess&")){
 		wgt->append(time(s[1]) + "<b style=\"color:" + s[3] + "\">&lt;" + s[2] + "&gt;</b>: " + s[4]);
 
-	}else if(r.startsWith("UpdUsers^")){
+	}else if(r.startsWith("UpdUsers&")){
 		wgt->updList(s[1].split('&'));
 
-	}else if(r.startsWith("Connected^")){
+	}else if(r.startsWith("Connected&")){
 		wgt->append(time(s[1]) + "<b style=\"color:#009900\">" + s[2] + " подключился</b>");
 
-	}else if(r.startsWith("Disconnected^")){
+	}else if(r.startsWith("Disconnected&")){
 		wgt->append(time(s[1]) + "<b style=\"color:#ff3300\">" + s[2] + " отключился</b>");
 
 	}else{
-
+		connected = true;
+		wgt->append("Read: " + r);
 	}
 }
 
 void CClient::connectToServer(){
 	if(!connected){
+		type = "irc";
 		QString type = cGet("server-type");
 		if(type == SERVER_OWN_CONFIG){
 			srv = new COwnServer;
 		}else if(type == "irc"){
-
+   srv = new CIRCServer(wgt);
 		}else{
 			logE("server-type must be " + SERVER_OWN_CONFIG + " or irc, not " + type);
 		}
-
+//srv->connect("92.125.155.98");
 		srv->connect(cGet("server-ip"));
-		connected = true;
+
 		connect(srv, SIGNAL(read(QString)), this, SLOT(read(QString)));
 	}
 }
@@ -88,7 +91,7 @@ QString CClient::time(QString s){
 }
 
 void CClient::sendMessage(QString s) {
-	send("Mess^" + s);
+	send("Mess&" + s);
 }
 
 void CClient::send(QString s){
@@ -97,5 +100,5 @@ void CClient::send(QString s){
 }
 
 void CClient::close(){
-	if(srv) send("^Disconnect^");
+	if(srv) send("&Disconnect&");
 }

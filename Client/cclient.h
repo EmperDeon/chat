@@ -1,7 +1,7 @@
 #ifndef CCLIENT_H
 #define CCLIENT_H
 #include <cdefines.h>
-#include <cserver.h>
+#include "cserver.h"
 #include <cwgt.h>
 
 class CServer;
@@ -17,6 +17,7 @@ class CClient : public QObject{
 	QJsonObject *history;
 	QDate lastdate;
 
+	QString type;
 	bool connected = false;
 
 protected slots:
@@ -36,6 +37,9 @@ public:
 	void sendMessage(QString s);
 	void send(QString s);
 	void close();
+
+	void readO(QString r);
+	void readI(QString r);
 };
 
 #endif // CCLIENT_H

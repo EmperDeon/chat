@@ -1,5 +1,5 @@
-set(S_S sconnect.cpp smain.cpp sserver.cpp sutils.cpp swgt.cpp)
-set(S_H sconnect.h sdefines.h sserver.h sutils.h swgt.h)
+set(S_S sconnect.cpp smain.cpp sserver.cpp sutils.cpp swgt.cpp sclients.cpp)
+set(S_H sconnect.h sdefines.h sserver.h sutils.h swgt.h sclients.h)
 
 qt5_wrap_cpp(GENERATED_SOURCES ${S_H})
 
