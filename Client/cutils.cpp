@@ -185,15 +185,19 @@ void CConfig::init(){
 	ds = "Имя (на русском): ";
 	o.insert(k, QInputDialog::getText(this, "Первый запуск", ds, QLineEdit::Normal, df));
 
-	k = "server-ip";
-	ds = "Адрес сервера: ";
-	df = "192.168.0.1";
-	o.insert(k, QInputDialog::getText(this, "Первый запуск", ds, QLineEdit::Normal, df));
+//	k = "loc-server-ip";
+//	ds = "Адрес локального сервера: ";
+//	df = "192.168.0.1";
+//	o.insert(k, QInputDialog::getText(this, "Первый запуск", ds, QLineEdit::Normal, df));
 
 	k = "server-type";
 	ds = "Тип сервера: ";
-	df = "local";
+	df = "irc";
 	o.insert(k, QInputDialog::getText(this, "Первый запуск", ds, QLineEdit::Normal, df));
+
+	o.insert("irc-name", "bitonshik228");
+	o.insert("irc-server-ip", "irc.ya1.ru");
+	o.insert("irc-server-port", "6665");
 
 	QFile f("config.json");
 	f.open(QFile::WriteOnly);

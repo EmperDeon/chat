@@ -30,7 +30,6 @@ void SServer::tryRead(){
 	for(QString c : cl->getNicks()){
 		QString r = cl->tryRead(c);
 		if (r != "") {
-			logD(r);
 			QStringList s = r.split('&');
 
 			if(r.startsWith("Mess&")){
@@ -42,22 +41,19 @@ void SServer::tryRead(){
 
 			}else if(r.startsWith("GetHistory&")){
 				sendHistory(c, s[1]);
+				cl->sendConn(c, "Connected");
 
 			}else if(r.startsWith("SetColor&")){
 				cl->setColor(c, s[1]);
 
 			}else if(r.startsWith("SetName&")){
 				cl->add(c, s[1]);
-				cl->sendConn(c, "Connected");
-				appendHistory(TIME, "Connected&" + TIME + "&" + s[1]);
-
 				updList();
 
 			}else if(r.startsWith("GetList&")){
 				cl->send(c, "UpdUsers&" + cl->getNicks().join('&'));
 
 			}else if(r.startsWith("&Disconnect&")){
-				appendHistory(TIME, "Disconnected&" + TIME + "&" + cl->getName(c));
 				delConnection(cl->get(c));
 
 			}else{
@@ -76,13 +72,13 @@ void SServer::startServer(){
 		if(type == SERVER_OWN_CONFIG){
 			srv = new SOwnConn;
 		}else if(type == "irc"){
-		//	srv = new SIrcConn;
+			srv = new SIRCConn(cl);
 		}else{
 			logE("server-type must be " + SERVER_OWN_CONFIG + " or irc, not " + type);
 		}
 
-		if(cHas("server-ip")){
-			srv->start(cGet("server-ip"));
+		if(cHas("irc-server-ip") || cHas("loc-server-ip")){
+			srv->start(type=="irc" ? cGet("irc-server-ip") : cGet("loc-server-ip"));
 
 			connect(srv, SIGNAL(newConnection(SClient*)), this, SLOT(newConnection(SClient*)));
 			connect(srv, SIGNAL(delConnection(SClient*)), this, SLOT(delConnection(SClient*)));
@@ -172,14 +168,14 @@ void SServer::sendHistory(QString c, QString d, QString filt) {
 
 			v = history->value(k).toString();
 			if(v.startsWith(filt) && r.length() + v.length() > 400){
-				cl->send(c, "History&" + r);
+				cl->send(c, "History^" + r);
 				r = "";
 			}
-			r += v + "&";
+			r += v + "^";
 		}
 }
 	if(!v.isEmpty())
-		cl->send(c, r);
+		cl->send(c,"History^" + r);
 
 }
 

@@ -1,6 +1,10 @@
 #ifndef SCONNECT_H
 #define SCONNECT_H
 #include <sdefines.h>
+#include "sclients.h"
+
+class SClients;
+class SIRCConn;
 
 class SClient{
 public:
@@ -28,7 +32,7 @@ public:
 
 	virtual QString tryRead() {return messages.isEmpty() ? "" : messages.takeFirst();}
 	virtual void insertMess(QString m){ messages << m;}
-	virtual void send(QString s){ srv->sendP("PRIVMSG " + sNick + " :" + s);}
+	virtual void send(QString s);
 
 	virtual QString  getColor(){ return sColor;}
 	virtual QString  getNick (){ return sNick ;}
@@ -104,6 +108,7 @@ class SIRCConn : public SConnect{
 
 	QTcpSocket* sock;
 	QString lastMsg;
+ SClients* cl;
 
 	void parseRead(QString r);
 
@@ -112,7 +117,7 @@ private slots:
 	void readyRead();
 
 public:
-	SIRCConn();
+	SIRCConn(SClients* c);
 	void sendP(QString r);
 
 	virtual void start(QString ip);};

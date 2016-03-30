@@ -75,14 +75,16 @@ void CIRCServer::readyRead() {
 }
 
 void CIRCServer::parseRead(QString r) {
-	qDebug() << r.remove("\n");
+	r.truncate(r.length() - 2);
+	qDebug() << r;
 	QStringList s = r.split(":");
 	if(r.startsWith("PING")){
 		sendP("PONG :" + s[1]);
 	}else if(r.indexOf("PRIVMSG") != -1){
-		qDebug() << r.split(" :");
-		emit read(r.split(" :")[1]);
-	}else if(r.indexOf(":+i") != -1){
+		QString mess = r.split(" :")[1];
+		if(!mess.startsWith(""))
+			emit read(mess);
+	}else if(r.indexOf(":+i") != -1 || r.indexOf(":+x") != -1){
 		emit read("&GetNick&");
 	}
 }
@@ -99,11 +101,11 @@ CIRCServer::CIRCServer(Wgt* w) : wgt(w){
 }
 
 void CIRCServer::connect(QString a) {
- sock->connectToHost(a, 6666);
+	sock->connectToHost(a, cGet("irc-server-port").toInt());
 }
 
 void CIRCServer::send(QString s) {
- sendP("PRIVMSG " + cGet("irc-name") + s);
+ sendP("PRIVMSG " + cGet("irc-name") + " :" + s);
 }
 
 void CIRCServer::disconnectFromServer() {
@@ -111,6 +113,6 @@ void CIRCServer::disconnectFromServer() {
 }
 
 void CIRCServer::sendP(QString s) {
-	sock->write((s + "\r\n").toUtf8());
+	sock->write((s + "\n").toUtf8());
 }
 // CIRCServer

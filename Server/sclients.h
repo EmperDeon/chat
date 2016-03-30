@@ -15,7 +15,7 @@ public:
 	void add(SClient* c);
 	void add(QString n, QString r);
 	void del(QString n);
-	SClient* get(QString n){ return clients->value(n);}
+	SClient* get(QString n){ return clients->contains(n) ? clients->value(n) : nullptr;}
 
 	// Send functions
 	void send(QString n, QString m);
@@ -31,6 +31,7 @@ public:
 	QString tryRead(QString n);
 	QStringList getNicks();
 	QStringList getNames();
+ SClient* getClient(QString n);
 
 	void setColor(QString n, QString c);
 

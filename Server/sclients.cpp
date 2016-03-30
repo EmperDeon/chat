@@ -67,3 +67,4 @@ QString SClients::findR(QString r){
 			return i;
 	return "";
 }
+

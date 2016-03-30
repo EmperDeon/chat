@@ -5,6 +5,7 @@
 
 void CClient::read(QString r){
 	QStringList s = r.split('&');
+	//wgt->append("Read: " + r);
 	if(r.startsWith("&GetNick&")){
 		connected = true;
 		send("Nick&" + cGet("login") + "&" + cGet("pass"));
@@ -18,9 +19,10 @@ void CClient::read(QString r){
 		send("SetColor&" + cGet("color"));
 		send("GetHistory&" + history->value("lastMessage").toString("1"));
 
-	}else if(r.startsWith("History&")){
-		for(QString i : s){
-			addHistory(i);
+	}else if(r.startsWith("History^")){
+		for(QString i : r.split('^')){
+			if(i != "")
+				addHistory(i);
 		}
 
 	}else if(r.startsWith("Mess&")){
@@ -37,7 +39,7 @@ void CClient::read(QString r){
 
 	}else{
 		connected = true;
-		wgt->append("Read: " + r);
+//		wgt->append("Read: " + r);
 	}
 }
 
@@ -52,8 +54,8 @@ void CClient::connectToServer(){
 		}else{
 			logE("server-type must be " + SERVER_OWN_CONFIG + " or irc, not " + type);
 		}
-//srv->connect("92.125.155.98");
-		srv->connect(cGet("server-ip"));
+
+		srv->connect(type == "irc" ? cGet("irc-server-ip") : cGet("loc-server-ip"));
 
 		connect(srv, SIGNAL(read(QString)), this, SLOT(read(QString)));
 	}
@@ -97,6 +99,7 @@ void CClient::sendMessage(QString s) {
 void CClient::send(QString s){
 	if(!connected) connectToServer();
 	srv->send(s);
+//	wgt->append("Send: " + s);
 }
 
 void CClient::close(){

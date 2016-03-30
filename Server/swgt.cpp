@@ -48,7 +48,7 @@ Wgt::Wgt(QWidget *parent)	: QWidget(parent){
 }
 
 void Wgt::append(QString s){
-	consHtml += s;
+	consHtml += s + "<br/>";
 	cons->setHtml(consHtml);
 	QTextCursor c = cons->textCursor();
 	c.movePosition(QTextCursor::End);

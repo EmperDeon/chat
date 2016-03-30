@@ -1,5 +1,7 @@
 #include "sconnect.h"
 
+void SIrcClient::send(QString s){ srv->sendP("PRIVMSG " + sNick + " :" + s);}
+
 void SOwnConn::newConn(){
 	QTcpSocket* client = srv->nextPendingConnection();
 	tmp->append(client);
@@ -131,36 +133,48 @@ void SIRCConn::readyRead() {
 	do {
 		line = sock->readLine();
 		if (line.size()) {
-			parseRead(QString::fromUtf8(line.data()));
+			QString l = QString::fromUtf8(line.data());
+			parseRead(l.remove(l.length()-2, 2));
 		}else
 			break;
 	}
 	while ( true );
 }
 
-SIRCConn::SIRCConn() {
+SIRCConn::SIRCConn(SClients* c): cl(c){
 	sock = new QTcpSocket;
 	QObject::connect(sock, SIGNAL(connected()), this, SLOT(newConn()));
 	QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readyRead()));
 }
 
 void SIRCConn::start(QString ip) {
-
+	sock->connectToHost(ip, cGet("irc-server-port").toInt());
 }
 
 void SIRCConn::parseRead(QString r) {
-	qDebug() << r.remove("\n");
+	qDebug() << r;
 	QStringList s = r.split(":");
 	if(r.startsWith("PING")){
 		sendP("PONG :" + s[1]);
 	}else if(r.indexOf("PRIVMSG") != -1){
-		qDebug() << r.split(" :");
-		emit read(r.split(" :")[1]);
-	}else if(r.indexOf(":+i") != -1){
-		emit read("&GetNick&");
+		r = r.remove(0, 1);
+		QString mess = r.split(" :")[1];
+		SClient* client = cl->get(QStringRef(&r, 0, r.indexOf("!")).toString());
+		mess = mess.trimmed();
+		if(client != nullptr){
+			client->insertMess(mess);
+		}else if(r.indexOf("Nick&") != -1){
+			QStringList l = mess.split("&");
+			emit newConnection(new SIrcClient(this, l.value(1), l.value(2)));
+		}else{
+			qDebug() << "Strange, " << mess;
+		}
+	}else if(r.indexOf(":+i") != -1 || r.indexOf(":+i") != -1){
+		logI("Connected to IRC");
 	}
 }
 
 void SIRCConn::sendP(QString r) {
 	sock->write((r + "\r\n").toUtf8());
+	qDebug() << "Send: " << r;
 }
