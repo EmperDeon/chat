@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/icon">
+        <file>icon.ico</file>
+        <file>icon-conn.png</file>
+        <file>icon-mess.png</file>
+        <file>icon-connn.png</file>
+    </qresource>
+    <qresource prefix="/snd">
+        <file>mess.wav</file>
+    </qresource>
+</RCC>

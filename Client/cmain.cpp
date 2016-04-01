@@ -15,7 +15,7 @@ void messages(QtMsgType type, const QMessageLogContext& cont, const QString& msg
 int main(int argc, char *argv[]){
 	QApplication a(argc, argv);
 	CLOGGER = new CLogWidget;
-	//qInstallMessageHandler(messages);
+	qInstallMessageHandler(messages);
 
 	CCONFIG = new CConfig;
 

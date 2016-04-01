@@ -15,6 +15,7 @@ class Wgt : public QWidget{
 	// Right menu
 	QListWidget* onln;
 	// Tray
+ QSystemTrayIcon* tray;
 
 	// Other
 	SServer* srv;
@@ -22,6 +23,7 @@ class Wgt : public QWidget{
 public slots:
 	void send();
 	void showL();
+	void trayClick(QSystemTrayIcon::ActivationReason reason);
 
 public:
 	Wgt(QWidget *parent = 0);
@@ -31,6 +33,7 @@ public:
 
 protected:
 	virtual void closeEvent(QCloseEvent* e);
+	virtual void hideEvent(QHideEvent* e);
 };
 
 #endif // WGT_H

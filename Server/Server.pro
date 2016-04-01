@@ -23,8 +23,12 @@ SOURCES +=\
 
 HEADERS  += \
 		sconnect.h \
-    sdefines.h \
+		sdefines.h \
     sutils.h \
     swgt.h \
     sserver.h \
     sclients.h
+RC_FILE = res.rc
+
+RESOURCES += \
+    res.qrc

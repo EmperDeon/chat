@@ -8,21 +8,28 @@ void SServer::newConnection(SClient *c){
 	QString n = c->getNick();
 	if(!users->contains(n)) {
 		users->insert(n, c->getPass());
+		cl->add(c);
+		cl->sendMotd(n);
+		wgt->append("<div style=\"color:#009900\">" + c->getNick() + " connected</div>");
+
 	}else if(users->value(n) == c->getPass()){
 		cl->add(c);
 		cl->sendMotd(n);
 		wgt->append("<div style=\"color:#009900\">" + c->getNick() + " connected</div>");
+
 	}else{
 		c->send("&WrongPass&");
 		c->disconnect();
+
 	}
 }
 
 void SServer::delConnection(SClient *c){
 	wgt->append("<div style=\"color:#ff3300\">" + c->getNick() + " disconnected</div>");
+	QString s = cl->getName(c->getNick());
 	cl->del(c->getNick());
 	c->disconnect();
-	cl->sendConn(c->getNick(), "Disconnected");
+	cl->sendConn(c->getNick(), "Disconnected&"+s);
 	updList();
 }
 
@@ -72,7 +79,7 @@ void SServer::startServer(){
 		if(type == SERVER_OWN_CONFIG){
 			srv = new SOwnConn;
 		}else if(type == "irc"){
-			srv = new SIRCConn(cl);
+			srv = new SIRCConn(this);
 		}else{
 			logE("server-type must be " + SERVER_OWN_CONFIG + " or irc, not " + type);
 		}
@@ -111,7 +118,7 @@ void SServer::close() {
 
 void SServer::updList(){
 	wgt->updateList(cl->getNicks());
-	cl->sendAll("UpdUsers&" + cl->getNames().join('&'));
+	cl->sendAll("UpdUsers&" + cl->getNames().join('^'));
 }
 
 void SServer::loadJsons() {

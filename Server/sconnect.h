@@ -1,10 +1,11 @@
 #ifndef SCONNECT_H
 #define SCONNECT_H
 #include <sdefines.h>
-#include "sclients.h"
+#include "sserver.h"
 
 class SClients;
 class SIRCConn;
+class SServer;
 
 class SClient{
 public:
@@ -23,9 +24,9 @@ public:
 };
 
 class SIrcClient : public SClient{
+	SIRCConn* srv;
 	QString sColor, sNick, sPass;
- QStringList messages;
- SIRCConn* srv;
+	QStringList messages;
 
 public:
 	SIrcClient(SIRCConn* s, QString nick, QString pass): srv(s), sNick(nick), sPass(pass){ }
@@ -53,7 +54,7 @@ public:
 	SOwnClient(QString nick, QString pass, QTcpSocket* s);
 
 	virtual QString tryRead();
-	virtual void insertMess(QString m){ }
+	virtual void insertMess(QString m){Q_UNUSED(m)}
 	virtual void send(QString s);
 
 	virtual QString  getColor(){ return sColor;}
@@ -108,7 +109,8 @@ class SIRCConn : public SConnect{
 
 	QTcpSocket* sock;
 	QString lastMsg;
- SClients* cl;
+	SServer* srv;
+	SClients* cl;
 
 	void parseRead(QString r);
 
@@ -117,7 +119,7 @@ private slots:
 	void readyRead();
 
 public:
-	SIRCConn(SClients* c);
+	SIRCConn(SServer *c);
 	void sendP(QString r);
 
 	virtual void start(QString ip);};

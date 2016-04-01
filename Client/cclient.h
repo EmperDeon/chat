@@ -26,12 +26,14 @@ protected slots:
 public slots:
 	void connectToServer();
 
-protected:
+signals:
+	void connected_to();
 
 public:
 	CClient(Wgt* w);
 
 	void addHistory(QString m);
+	void loadHistory();
 	QString time(QString s);
 
 	void sendMessage(QString s);

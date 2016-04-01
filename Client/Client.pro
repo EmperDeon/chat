@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui network
+QT += multimedia
 CONFIG  += c++11
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -28,3 +29,7 @@ HEADERS  += \
 
 DISTFILES += \
     Commands
+RC_FILE = res.rc
+
+RESOURCES += \
+    res.qrc

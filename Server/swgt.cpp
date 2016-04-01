@@ -24,6 +24,10 @@ Wgt::Wgt(QWidget *parent)	: QWidget(parent){
 	onln = new QListWidget;
 	onln->setMaximumWidth(100);
 
+	tray = new QSystemTrayIcon(QIcon(":/icon/icon.ico"));
+	tray->show();
+	connect(tray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(trayClick(QSystemTrayIcon::ActivationReason)));
+
 	// Layout
 	connect(bsend, SIGNAL(clicked()), this, SLOT(send()));
 	connect(bstrt, SIGNAL(clicked()), srv , SLOT(startServer()));
@@ -48,7 +52,7 @@ Wgt::Wgt(QWidget *parent)	: QWidget(parent){
 }
 
 void Wgt::append(QString s){
-	consHtml += s + "<br/>";
+	consHtml += s;
 	cons->setHtml(consHtml);
 	QTextCursor c = cons->textCursor();
 	c.movePosition(QTextCursor::End);
@@ -64,7 +68,23 @@ void Wgt::closeEvent(QCloseEvent *e){
 	Q_UNUSED(e);
 	srv->close();
 	SCONFIG->save();
+	tray->hide();
+}
+
+void Wgt::hideEvent(QHideEvent *e){
+	Q_UNUSED(e)
+	hide();
 }
 
 
-
+void Wgt::trayClick(QSystemTrayIcon::ActivationReason reason) {
+	if(reason == QSystemTrayIcon::Trigger){
+		if (!isVisible()){
+			if (isMinimized()) showNormal();
+			this->showMaximized();
+			qApp->setActiveWindow(this);
+		}else{
+			this->hide();
+		}
+	}
+}

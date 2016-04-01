@@ -8,6 +8,8 @@
 class Wgt;
 class SConnect;
 class SClients;
+class SIRCConn;
+class SClient;
 
 class SServer : public QObject{
 	Q_OBJECT
@@ -48,6 +50,7 @@ protected:
 	void appendHistory(QString k, QString v);
 	void sendHistory(QString c, QString d, QString filt = "");
 
+	friend class SIRCConn;
 };
 
 

@@ -1,4 +1,5 @@
 #include "cclient.h"
+#include <QSound>
 
 #define SERVER_OWN_CONFIG QString("local")
 
@@ -9,6 +10,7 @@ void CClient::read(QString r){
 	if(r.startsWith("&GetNick&")){
 		connected = true;
 		send("Nick&" + cGet("login") + "&" + cGet("pass"));
+		emit(connected_to());
 
 	}else if(r.startsWith("&WrongPass&")){
 		wgt->append("<br/><div style=\"color:red\"> Wrong password </div><br/>");
@@ -17,6 +19,7 @@ void CClient::read(QString r){
 		wgt->append("MOTD: " + s[1] + "<br />");
 		send("SetName&"  + cGet("realname"));
 		send("SetColor&" + cGet("color"));
+		loadHistory();
 		send("GetHistory&" + history->value("lastMessage").toString("1"));
 
 	}else if(r.startsWith("History^")){
@@ -27,9 +30,11 @@ void CClient::read(QString r){
 
 	}else if(r.startsWith("Mess&")){
 		wgt->append(time(s[1]) + "<b style=\"color:" + s[3] + "\">&lt;" + s[2] + "&gt;</b>: " + s[4]);
+		if(cGet("message-sound") == "true")
+			QSound::play(":/snd/mess.wav");
 
 	}else if(r.startsWith("UpdUsers&")){
-		wgt->updList(s[1].split('&'));
+		wgt->updList(s[1].split('^'));
 
 	}else if(r.startsWith("Connected&")){
 		wgt->append(time(s[1]) + "<b style=\"color:#009900\">" + s[2] + " подключился</b>");
@@ -62,7 +67,14 @@ void CClient::connectToServer(){
 }
 
 CClient::CClient(Wgt *w): wgt(w){
-	history = new QJsonObject;
+	QFile f("history.json");
+	if(f.exists()) {
+		f.open(QFile::ReadOnly);
+		history = new QJsonObject(QJsonDocument::fromJson(f.readAll()).object());
+		f.close();
+	}else{
+		history = new QJsonObject;
+	}
 }
 
 void CClient::addHistory(QString m){
@@ -70,16 +82,20 @@ void CClient::addHistory(QString m){
 	if(m.startsWith("History")) return;
 
 	if(m.startsWith("Mess&")){
-			wgt->append(time(s[1]) + "<b style=\"color:" + s[3] + "\">&lt;" + s[2] + "&gt;</b>: " + s[4]);
-
-	}else if(m.startsWith("Connected&")){
-			wgt->append(time(s[1]) + "<b style=\"color:#009900\">" + s[2] + " подключился</b>");
-
-	}else if(m.startsWith("Disconnected&")){
-			wgt->append(time(s[1]) + "<b style=\"color:#ff3300\">" + s[2] + " отключился</b>");
+		wgt->append(time(s[1]) + "<b style=\"color:" + s[3] + "\">&lt;" + s[2] + "&gt;</b>: " + s[4]);
+		history->insert(s[1], m);
+		history->insert("lastMessage", s[1]);
 
 	}else{
 		logD(m);
+	}
+}
+
+void CClient::loadHistory(){
+	for(QString k : history->keys()){
+		if(k == "lastMessage") continue;
+		QStringList s = history->value(k).toString().split('&');
+		wgt->append(time(s[1]) + "<b style=\"color:" + s[3] + "\">&lt;" + s[2] + "&gt;</b>: " + s[4]);
 	}
 }
 
@@ -103,5 +119,10 @@ void CClient::send(QString s){
 }
 
 void CClient::close(){
+	QFile f("history.json");
+	f.open(QFile::WriteOnly);
+	f.write(QJsonDocument(*history).toJson());
+	f.flush();
+	f.close();
 	if(srv) send("&Disconnect&");
 }

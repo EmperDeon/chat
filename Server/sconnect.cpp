@@ -141,7 +141,7 @@ void SIRCConn::readyRead() {
 	while ( true );
 }
 
-SIRCConn::SIRCConn(SClients* c): cl(c){
+SIRCConn::SIRCConn(SServer* c): srv(c), cl(srv->cl){
 	sock = new QTcpSocket;
 	QObject::connect(sock, SIGNAL(connected()), this, SLOT(newConn()));
 	QObject::connect(sock, SIGNAL(readyRead()), this, SLOT(readyRead()));
@@ -152,11 +152,15 @@ void SIRCConn::start(QString ip) {
 }
 
 void SIRCConn::parseRead(QString r) {
-	qDebug() << r;
+	if(!(r.startsWith("PING") || r.indexOf("372 bitonshik228") != -1)) qDebug() << "Read: " << r;
+
 	QStringList s = r.split(":");
+
 	if(r.startsWith("PING")){
 		sendP("PONG :" + s[1]);
+
 	}else if(r.indexOf("PRIVMSG") != -1){
+
 		r = r.remove(0, 1);
 		QString mess = r.split(" :")[1];
 		SClient* client = cl->get(QStringRef(&r, 0, r.indexOf("!")).toString());
@@ -169,12 +173,20 @@ void SIRCConn::parseRead(QString r) {
 		}else{
 			qDebug() << "Strange, " << mess;
 		}
+
 	}else if(r.indexOf(":+i") != -1 || r.indexOf(":+i") != -1){
 		logI("Connected to IRC");
+
+	}else if(r.indexOf("No such nick/channel") != -1){
+		//":irc.ya1.ru 401 bitonshik228 hevok :No such nick/channel"
+		srv->delConnection(cl->get(QStringRef(&r,
+																																								r.indexOf("bitonshik228")+13,
+																																								r.indexOf(":No") - r.indexOf("bitonshik228") - 14
+																																								).toString()));
 	}
 }
 
 void SIRCConn::sendP(QString r) {
 	sock->write((r + "\r\n").toUtf8());
-	qDebug() << "Send: " << r;
+	if(!(r.startsWith("PONG") || r.startsWith("PRIVMSG"))) qDebug() << "Send: " << r;
 }
